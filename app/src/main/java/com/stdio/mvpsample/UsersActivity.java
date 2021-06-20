@@ -35,22 +35,8 @@ public class UsersActivity extends AppCompatActivity {
 
     private void init() {
 
-        editTextName = (EditText) findViewById(R.id.name);
-        editTextEmail = (EditText) findViewById(R.id.email);
-
-        findViewById(R.id.add).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                presenter.add();
-            }
-        });
-
-        findViewById(R.id.clear).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                presenter.clear();
-            }
-        });
+        editTextName = findViewById(R.id.name);
+        editTextEmail = findViewById(R.id.email);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -67,6 +53,17 @@ public class UsersActivity extends AppCompatActivity {
         presenter = new UsersPresenter(usersModel);
         presenter.attachView(this);
         presenter.viewIsReady();
+    }
+
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.add:
+                presenter.add();
+                break;
+            case R.id.clear:
+                presenter.clear();
+                break;
+        }
     }
 
     public UserData getUserData() {
