@@ -68,8 +68,22 @@ public class UsersModel {
     }
 
     public void clearUsers(CompleteCallback completeCallback) {
-        ClearUsersTask clearUsersTask = new ClearUsersTask(completeCallback);
-        clearUsersTask.execute();
+        Observable.fromCallable(() -> {
+            dbHelper.getWritableDatabase().delete(UserTable.TABLE, null, null);
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return true;
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((result) -> {
+                    if (completeCallback != null) {
+                        completeCallback.onComplete();
+                    }
+                });
     }
 
 
@@ -80,34 +94,4 @@ public class UsersModel {
     interface CompleteCallback {
         void onComplete();
     }
-
-    class ClearUsersTask extends AsyncTask<Void, Void, Void> {
-
-        private final CompleteCallback callback;
-
-        ClearUsersTask(CompleteCallback callback) {
-            this.callback = callback;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            dbHelper.getWritableDatabase().delete(UserTable.TABLE, null, null);
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            if (callback != null) {
-                callback.onComplete();
-            }
-        }
-    }
-
-
 }
