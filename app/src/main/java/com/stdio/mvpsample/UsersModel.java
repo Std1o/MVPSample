@@ -12,6 +12,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 public class UsersModel {
 
     private final DbHelper dbHelper;
@@ -21,8 +26,27 @@ public class UsersModel {
     }
 
     public void loadUsers(LoadUserCallback callback) {
-        LoadUsersTask loadUsersTask = new LoadUsersTask(callback);
-        loadUsersTask.execute();
+        List<User> users = new LinkedList<>();
+        Observable.fromCallable(() -> {
+            Cursor cursor = dbHelper.getReadableDatabase().query(UserTable.TABLE, null, null, null, null, null, null);
+            while (cursor.moveToNext()) {
+                User user = new User();
+                user.setId(cursor.getLong(cursor.getColumnIndex(UserTable.COLUMN.ID)));
+                user.setName(cursor.getString(cursor.getColumnIndex(UserTable.COLUMN.NAME)));
+                user.setEmail(cursor.getString(cursor.getColumnIndex(UserTable.COLUMN.EMAIL)));
+                users.add(user);
+            }
+            cursor.close();
+            return users;
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((result) -> {
+                    if (callback != null) {
+                        System.out.println("success");
+                        callback.onLoad(users);
+                    }
+                });
     }
 
     public void addUser(ContentValues contentValues, CompleteCallback callback) {
@@ -42,37 +66,6 @@ public class UsersModel {
 
     interface CompleteCallback {
         void onComplete();
-    }
-
-    class LoadUsersTask extends AsyncTask<Void, Void, List<User>> {
-
-        private final LoadUserCallback callback;
-
-        LoadUsersTask(LoadUserCallback callback) {
-            this.callback = callback;
-        }
-
-        @Override
-        protected List<User> doInBackground(Void... params) {
-            List<User> users = new LinkedList<>();
-            Cursor cursor = dbHelper.getReadableDatabase().query(UserTable.TABLE, null, null, null, null, null, null);
-            while (cursor.moveToNext()) {
-                User user = new User();
-                user.setId(cursor.getLong(cursor.getColumnIndex(UserTable.COLUMN.ID)));
-                user.setName(cursor.getString(cursor.getColumnIndex(UserTable.COLUMN.NAME)));
-                user.setEmail(cursor.getString(cursor.getColumnIndex(UserTable.COLUMN.EMAIL)));
-                users.add(user);
-            }
-            cursor.close();
-            return users;
-        }
-
-        @Override
-        protected void onPostExecute(List<User> users) {
-            if (callback != null) {
-                callback.onLoad(users);
-            }
-        }
     }
 
     class AddUserTask extends AsyncTask<ContentValues, Void, Void> {
