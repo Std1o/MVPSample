@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.stdio.mvpsample.database.DbHelper;
+import com.stdio.mvpsample.databinding.ActivityUsersBinding;
 import com.stdio.mvpsample.models.User;
 import com.stdio.mvpsample.models.UserData;
 
@@ -20,8 +21,7 @@ public class UsersActivity extends AppCompatActivity implements UsersContractVie
 
     private UserAdapter userAdapter;
 
-    private EditText editTextName;
-    private EditText editTextEmail;
+    private ActivityUsersBinding binding;
     private ProgressDialog progressDialog;
 
     private UsersPresenter presenter;
@@ -29,15 +29,12 @@ public class UsersActivity extends AppCompatActivity implements UsersContractVie
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_users);
+        binding = ActivityUsersBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         init();
     }
 
     private void init() {
-
-        editTextName = findViewById(R.id.name);
-        editTextEmail = findViewById(R.id.email);
-
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
 
@@ -69,8 +66,9 @@ public class UsersActivity extends AppCompatActivity implements UsersContractVie
     @Override
     public UserData getUserData() {
         UserData userData = new UserData();
-        userData.setName(editTextName.getText().toString());
-        userData.setEmail(editTextEmail.getText().toString());
+        System.out.println("ddd"+binding.name.getText());
+        userData.setName(binding.name.getText().toString());
+        userData.setEmail(binding.email.getText().toString());
         return userData;
     }
 
