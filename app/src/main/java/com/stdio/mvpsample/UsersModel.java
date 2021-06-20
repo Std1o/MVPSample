@@ -26,8 +26,8 @@ public class UsersModel {
     }
 
     public void loadUsers(LoadUserCallback callback) {
-        List<User> users = new LinkedList<>();
         Observable.fromCallable(() -> {
+            List<User> users = new LinkedList<>();
             Cursor cursor = dbHelper.getReadableDatabase().query(UserTable.TABLE, null, null, null, null, null, null);
             while (cursor.moveToNext()) {
                 User user = new User();
@@ -43,15 +43,28 @@ public class UsersModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((result) -> {
                     if (callback != null) {
-                        System.out.println("success");
-                        callback.onLoad(users);
+                        callback.onLoad(result);
                     }
                 });
     }
 
     public void addUser(ContentValues contentValues, CompleteCallback callback) {
-        AddUserTask addUserTask = new AddUserTask(callback);
-        addUserTask.execute(contentValues);
+        Observable.fromCallable(() -> {
+            dbHelper.getWritableDatabase().insert(UserTable.TABLE, null, contentValues);
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return dbHelper;
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((result) -> {
+                    if (callback != null) {
+                        callback.onComplete();
+                    }
+                });
     }
 
     public void clearUsers(CompleteCallback completeCallback) {
@@ -66,35 +79,6 @@ public class UsersModel {
 
     interface CompleteCallback {
         void onComplete();
-    }
-
-    class AddUserTask extends AsyncTask<ContentValues, Void, Void> {
-
-        private final CompleteCallback callback;
-
-        AddUserTask(CompleteCallback callback) {
-            this.callback = callback;
-        }
-
-        @Override
-        protected Void doInBackground(ContentValues... params) {
-            ContentValues cvUser = params[0];
-            dbHelper.getWritableDatabase().insert(UserTable.TABLE, null, cvUser);
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            if (callback != null) {
-                callback.onComplete();
-            }
-        }
     }
 
     class ClearUsersTask extends AsyncTask<Void, Void, Void> {
