@@ -16,7 +16,7 @@ import com.stdio.mvpsample.models.UserData;
 
 import java.util.List;
 
-public class UsersActivity extends AppCompatActivity {
+public class UsersActivity extends AppCompatActivity implements UsersContractView{
 
     private UserAdapter userAdapter;
 
@@ -66,6 +66,7 @@ public class UsersActivity extends AppCompatActivity {
         }
     }
 
+    @Override
     public UserData getUserData() {
         UserData userData = new UserData();
         userData.setName(editTextName.getText().toString());
@@ -73,18 +74,22 @@ public class UsersActivity extends AppCompatActivity {
         return userData;
     }
 
+    @Override
     public void showUsers(List<User> users) {
         userAdapter.setData(users);
     }
 
+    @Override
     public void showToast(int resId) {
         Toast.makeText(this, resId, Toast.LENGTH_SHORT).show();
     }
 
+    @Override
     public void showProgress() {
         progressDialog = ProgressDialog.show(this, "", getString(R.string.please_wait));
     }
 
+    @Override
     public void hideProgress() {
         if (progressDialog != null) {
             progressDialog.dismiss();

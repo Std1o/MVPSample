@@ -11,15 +11,15 @@ import java.util.List;
 
 public class UsersPresenter {
 
-    private UsersActivity view;
+    private UsersContractView view;
     private final UsersModel model;
 
     public UsersPresenter(UsersModel model) {
         this.model = model;
     }
 
-    public void attachView(UsersActivity usersActivity) {
-        view = usersActivity;
+    public void attachView(UsersContractView view) {
+        this.view = view;
     }
 
     public void detachView() {
